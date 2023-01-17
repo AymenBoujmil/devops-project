@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-teacher
+  labels:
+    app: ms-teacher
+spec:
+  replicas: {{.Values.deployment.replicas}}
+  selector:
+    matchLabels:
+      app: ms-teacher
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "5050"
+        prometheus.io/path: "/metrics"
+        prometheus.io/scrape: "true"
+      labels:
+        app: ms-teacher
+    spec:
+      containers:
+        - name: ms-teacher
+          image: {{.Values.teachers.image.name}}
+          env:
+            - name: MONGOOSE_CONNECT
+              valueFrom:
+                secretKeyRef:
+                  name: teachers-secrets
+                  key: mongoose
+            - name: PORT
+              value: "5050"
+          
+          ports:
+            - containerPort: {{.Values.teachers.http.port}}
+      restartPolicy: Always

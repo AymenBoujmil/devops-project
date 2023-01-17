@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-course
+  labels:
+    app: ms-course
+spec:
+  replicas: {{.Values.deployment.replicas}}
+  selector:
+    matchLabels:
+      app: ms-course
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "5051"
+        prometheus.io/path: "/metrics"
+        prometheus.io/scrape: "true"
+      labels:
+        app: ms-course
+    spec:
+      containers:
+        - name: ms-course
+          image: {{.Values.courses.image.name}}
+          env:
+            - name: MONGOOSE_CONNECT
+              valueFrom:
+                secretKeyRef:
+                  name: courses-secrets
+                  key: mongoose
+            - name: PORT
+              value: "5051"
+
+          ports:
+            - containerPort: {{.Values.courses.http.port}}
+      restartPolicy: Always
